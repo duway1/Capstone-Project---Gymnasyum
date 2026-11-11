@@ -2,6 +2,7 @@
 
 React + Vite frontend, Express REST API with JWT Authentication, PostgreSQL, bcrypt password hashing, Axios.
 
+<<<<<<< HEAD
 ## Akun Login Bawaan (Default Admin)
 - **Username:** `admin` (atau email: `admin@gymnasyum.com`)
 - **Password:** `admin123`
@@ -31,3 +32,11 @@ React + Vite frontend, Express REST API with JWT Authentication, PostgreSQL, bcr
 - **Autentikasi & Otorisasi:** Login berbasis JWT, registrasi akun staff/admin, enkripsi kata sandi menggunakan `bcryptjs`, proteksi endpoint API, tombol Logout.
 - **Member & Jadwal:** CRUD Member, CRUD Jadwal kelas, status kehadiran (*pending*, *present*, *absent*, *rescheduled*).
 - **Pengingat & Follow-up Cerdas:** Auto-generate reminder saat jadwal dibuat, penentuan prioritas otomatis (*high*, *medium*, *low*) berdasarkan riwayat ketidakhadiran, integrasi draf tautan WhatsApp, riwayat komunikasi log status.
+=======
+## Setup
+1. Install Node.js 20+, PostgreSQL 15+. Create PostgreSQL database `gymnasyum`.
+2. Execute `backend/schema.sql` using psql or pgAdmin Query Tool.
+3. Copy `backend/.env.example` to `backend/.env` and set DATABASE_URL.
+4. `cd backend && npm install && npm run dev`
+5. In another terminal: `cd frontend && npm install && npm run dev`. Open http://localhost:5173.
+>>>>>>> 9acdb2a6d047d76415f4b06f0efcd0a7173f548e
