@@ -1,18 +1,33 @@
 # Gymnasyum – Smart Reminder & Follow-Up
 
-React + Vite frontend, Express REST API with Joi validation, PostgreSQL, Axios.
+React + Vite frontend, Express REST API with JWT Authentication, PostgreSQL, bcrypt password hashing, Axios.
 
-## Setup
-1. Install Node.js 20+, PostgreSQL 15+. Create PostgreSQL database `gymnasyum`.
-2. Execute `backend/schema.sql` using psql or pgAdmin Query Tool.
-3. Copy `backend/.env.example` to `backend/.env` and set DATABASE_URL.
-4. `cd backend && npm install && npm run dev`
-5. In another terminal: `cd frontend && npm install && npm run dev`. Open http://localhost:5173.
+## Akun Login Bawaan (Default Admin)
+- **Username:** `admin` (atau email: `admin@gymnasyum.com`)
+- **Password:** `admin123`
+*(Tersedia juga fitur registrasi akun baru pada halaman login)*
 
-## Features
-- Member CRUD; schedule CRUD; attendance updates; reminder automatically created on schedule creation; priority by missed classes; daily reminders; WhatsApp draft links; manual status confirmation; cross-date history of status changes; responsive layout.
-- API endpoints are prefixed `/api/v1/`: `health`, `members`, `schedules`, `schedules/:id/attendance`, `reminders`, `reminders/today`, `reminders/:id`, `reminders/:id/message`, `history`.
-- Reminder state progression: scheduled → opened → sent → responded/no_response. Opening a WhatsApp link is not proof of delivery.
+## Setup & Menjalankan
 
-## Limitations and production readiness
-This is a local demonstration build, **not production-ready**. There is no admin authentication, access control, rate limiting, automated integration tests, audit trail for member edits, or hosted deployment. Do not expose the backend publicly or use real member personal data until these controls are implemented. Seed data and full deployment are not included. PostgreSQL must be configured locally.
+1. **Database:**
+   - Pastikan PostgreSQL berjalan dan database `gymnasyum` sudah dibuat.
+   - Skrip tabel berada di `backend/schema.sql` (tabel `users`, `members`, `schedules`, `reminders`, `communication_logs`).
+2. **Backend:**
+   ```bash
+   cd backend
+   npm install
+   npm run dev
+   ```
+   Server berjalan di `http://localhost:3001`. Akun admin bawaan akan otomatis di-seed saat pertama kali server dijalankan jika database masih kosong.
+3. **Frontend:**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   Buka di browser: `http://localhost:5173`.
+
+## Fitur Utama
+- **Autentikasi & Otorisasi:** Login berbasis JWT, registrasi akun staff/admin, enkripsi kata sandi menggunakan `bcryptjs`, proteksi endpoint API, tombol Logout.
+- **Member & Jadwal:** CRUD Member, CRUD Jadwal kelas, status kehadiran (*pending*, *present*, *absent*, *rescheduled*).
+- **Pengingat & Follow-up Cerdas:** Auto-generate reminder saat jadwal dibuat, penentuan prioritas otomatis (*high*, *medium*, *low*) berdasarkan riwayat ketidakhadiran, integrasi draf tautan WhatsApp, riwayat komunikasi log status.

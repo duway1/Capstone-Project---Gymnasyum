@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from './api/api';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -7,8 +7,19 @@ import MembersPage from './pages/MembersPage';
 import SchedulesPage from './pages/SchedulesPage';
 import RemindersPage from './pages/RemindersPage';
 import HistoryPage from './pages/HistoryPage';
+import LoginPage from './pages/LoginPage';
 
 export default function App() {
+  const [token, setToken] = useState(() => localStorage.getItem('gymnasyum_token') || '');
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('gymnasyum_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [page, setPage] = useState('Overview');
   const [members, setMembers] = useState([]);
   const [schedules, setSchedules] = useState([]);
@@ -16,6 +27,7 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [allReminders, setAllReminders] = useState([]);
   const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   // Member form state
   const [form, setForm] = useState({ name: '', phone: '', membership_status: 'active' });
@@ -30,7 +42,28 @@ export default function App() {
     attendance: 'pending'
   });
 
-  const load = async () => {
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('gymnasyum_token');
+    localStorage.removeItem('gymnasyum_user');
+    setToken('');
+    setUser(null);
+    setMembers([]);
+    setSchedules([]);
+    setReminders([]);
+    setHistory([]);
+    setAllReminders([]);
+    setError('');
+  }, []);
+
+  const handleLoginSuccess = (userData, userToken) => {
+    setUser(userData);
+    setToken(userToken);
+    setError('');
+  };
+
+  const load = useCallback(async () => {
+    if (!token) return;
+    setRefreshing(true);
     try {
       const [membersRes, schedulesRes, remindersTodayRes, historyRes, remindersRes] =
         await Promise.all([
@@ -47,14 +80,32 @@ export default function App() {
       setHistory(historyRes.data);
       setAllReminders(remindersRes.data);
       setError('');
-    } catch {
-      setError('Backend belum terhubung. Pastikan PostgreSQL dan Express berjalan.');
+    } catch (err) {
+      if (err.response?.status === 401) {
+        handleLogout();
+      } else {
+        setError('Backend belum terhubung. Pastikan PostgreSQL dan Express berjalan.');
+      }
+    } finally {
+      setRefreshing(false);
     }
-  };
+  }, [token, handleLogout]);
 
   useEffect(() => {
-    load();
-  }, []);
+    const onUnauthorized = () => {
+      handleLogout();
+    };
+    window.addEventListener('gymnasyum:logout', onUnauthorized);
+    return () => {
+      window.removeEventListener('gymnasyum:logout', onUnauthorized);
+    };
+  }, [handleLogout]);
+
+  useEffect(() => {
+    if (token) {
+      load();
+    }
+  }, [token, load]);
 
   // Member handlers
   const handleSaveMember = async (e) => {
@@ -85,11 +136,11 @@ export default function App() {
   };
 
   // Reminder handlers
-  const handleUpdateReminderStatus = async (id, status) => {
+  const handleUpdateReminderStatus = async (id, status, note = '') => {
     try {
       await api.patch(`/reminders/${id}`, {
         status,
-        note: prompt('Catatan (opsional):') || ''
+        note: typeof note === 'string' ? note : ''
       });
       load();
     } catch (err) {
@@ -178,12 +229,29 @@ export default function App() {
     }
   };
 
+  // Jika belum login, tampilkan halaman Login
+  if (!token || !user) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="layout">
-      <Sidebar page={page} setPage={setPage} />
+      <Sidebar
+        page={page}
+        setPage={setPage}
+        user={user}
+        onLogout={handleLogout}
+        reminderCount={reminders.length}
+      />
 
       <main>
-        <Header page={page} />
+        <Header
+          page={page}
+          user={user}
+          onLogout={handleLogout}
+          onRefresh={load}
+          loading={refreshing}
+        />
 
         {error && <div className="error">{error}</div>}
 
@@ -194,6 +262,7 @@ export default function App() {
             reminders={reminders}
             whatsapp={handleOpenWhatsapp}
             update={handleUpdateReminderStatus}
+            onNavigate={setPage}
           />
         )}
 
