@@ -45,10 +45,7 @@ npm install
 - **Password:** `admin123`
 *(Tersedia opsi registrasi akun staf/admin baru pada halaman login)*
 
----
----
-
----
+```
 
 
 ## 5 Fitur Utama Sesuai Project Plan
