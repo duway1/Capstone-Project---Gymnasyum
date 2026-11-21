@@ -76,27 +76,6 @@ $$\text{Scheduled} \longrightarrow \text{Sent} \longrightarrow \text{Responded /
 
 ---
 
-## Tool Pendukung Capstone Project
-
-### 1. Data Seeder & Generator
-Menyediakan data awal terstruktur yang merepresentasikan kondisi operasional Gymnasyum (profil member, jadwal kelas & private coaching, riwayat presensi 14 hari terakhir, reminder hari ini berbagai status, dan log komunikasi).
-- **Melalui Baris Perintah (CLI):**
-  ```bash
-  npm run seed
-  ```
-- **Melalui REST API:** `POST /api/v1/dataset/generate` atau `POST /api/v1/dataset/reset`
-
-### 2. Postman Collection (Tool #5)
-Koleksi pengujian endpoint REST API siap impor tersedia di:  
-`backend/postman_collection.json`  
-Mencakup pengujian Autentikasi, CRUD Members, CRUD Schedules, Reminders, Inference API, Synthetic Dataset, dan Communication Logs.
-
-### 3. Dual Database Support (PostgreSQL + SQLite Zero-Config)
-Sesuai strategi mitigasi risiko di Dokumen Project Plan (Halaman 2 & 5):
-- Jika server **PostgreSQL** aktif, sistem otomatis terhubung ke PostgreSQL.
-- Jika PostgreSQL tidak terpasang/tidak berjalan, sistem secara cerdas beralih ke **SQLite lokal** (`backend/gymnasyum.sqlite`) sehingga aplikasi dapat langsung diuji secara instan (*zero-configuration out of the box*).
-
----
 
 ## Panduan Instalasi & Menjalankan Proyek
 
@@ -138,17 +117,3 @@ Gunakan akun login bawaan: `admin` / `admin123`.
 
 ---
 
-## Pengujian Otomatis (Automated Test Suite)
-Untuk memvalidasi integritas database, generator dataset, alur status reminder, dan logika Inference API:
-```bash
-node backend/test_api.js
-```
-Hasil pengujian:
-```text
-✅ Test 1: Database initialized successfully
-✅ Test 2: Synthetic Dataset Generator berhasil
-✅ Test 3: Data member tersimpan
-✅ Test 4: Inference API berhasil mengklasifikasikan prioritas
-✅ Test 5: Alur Status Reminder berhasil (Scheduled -> Sent -> Responded)
-✅ Test 6: Riwayat komunikasi (communication_logs) terverifikasi
-```
