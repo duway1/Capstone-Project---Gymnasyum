@@ -160,32 +160,7 @@ export default function LoginPage({ onLoginSuccess }) {
           </button>
         </form>
 
-        {/* Helpful Default Account Helper */}
-        <div className="quick-access-panel">
-          <div className="quick-access-header">
-            <ShieldCheck size={16} className="quick-access-icon" />
-            <span>Akun Admin Bawaan</span>
-          </div>
-          <div className="quick-access-content">
-            <div className="quick-credentials">
-              <span>User: <strong>admin</strong></span>
-              <span className="bullet">&bull;</span>
-              <span>Pass: <strong>admin123</strong></span>
-            </div>
-            <button
-              type="button"
-              className="quick-fill-chip"
-              onClick={handleQuickFill}
-            >
-              Isi Otomatis
-            </button>
-          </div>
-        </div>
 
-        {/* Footer info */}
-        <div className="login-card-footer">
-          <small>&copy; {new Date().getFullYear()} Gymnasyum. Sistem Manajemen Gym & CRM.</small>
-        </div>
       </div>
     </div>
   );

@@ -7,8 +7,12 @@ import {
   PlusCircle,
   CalendarPlus,
   ArrowRight,
+  Sparkles,
   TrendingUp,
-  Sparkles
+  ShieldCheck,
+  MessageSquare,
+  History,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function OverviewPage({
@@ -17,7 +21,9 @@ export default function OverviewPage({
   reminders = [],
   whatsapp,
   update,
-  onNavigate
+  onNavigate,
+  onOpenMessageDrafter,
+  onOpenTimeline
 }) {
   const pendingCount = reminders.filter(
     (r) => r.status === 'scheduled' || r.status === 'no_response'
@@ -28,36 +34,43 @@ export default function OverviewPage({
 
   const statsCards = [
     {
-      title: 'Total Member',
+      title: 'Total Pelanggan Member',
       value: members.length,
       subtext: `${activeMembersCount} aktif berlangganan`,
       icon: Users,
       colorClass: 'stat-card-purple',
-      navTarget: 'Members'
+      navTarget: 'Members',
+      actionHint: 'Buka Menu Data Member'
     },
     {
-      title: 'Jadwal Kelas',
+      title: 'Jadwal Sesi Latihan',
       value: schedules.length,
-      subtext: 'Total sesi terjadwal',
+      subtext: 'Total jadwal kelas aktif',
       icon: Calendar,
       colorClass: 'stat-card-blue',
-      navTarget: 'Schedules'
+      navTarget: 'Schedules',
+      actionHint: 'Buka Menu Jadwal'
     },
     {
       title: 'Pengingat Hari Ini',
       value: reminders.length,
-      subtext: 'Jadwal kelas hari ini',
+      subtext: 'Sesi latihan terjadwal hari ini',
       icon: Bell,
       colorClass: 'stat-card-amber',
-      navTarget: 'Reminders'
+      navTarget: 'Reminders',
+      actionHint: 'Buka Menu Pengingat'
     },
     {
-      title: 'Perlu Follow-up',
+      title: 'Perlu Follow-up WA',
       value: pendingCount,
-      subtext: highPriorityCount > 0 ? `${highPriorityCount} prioritas tinggi` : 'Siap dikonfirmasi',
+      subtext:
+        highPriorityCount > 0
+          ? `${highPriorityCount} prioritas tinggi butuh atensi`
+          : 'Semua draf siap dikirim',
       icon: AlertCircle,
       colorClass: 'stat-card-rose',
-      navTarget: 'Reminders'
+      navTarget: 'Reminders',
+      actionHint: 'Tindak Lanjuti Sekarang'
     }
   ];
 
@@ -70,34 +83,88 @@ export default function OverviewPage({
             <Sparkles size={14} />
             <span>Smart CRM Gymnasyum</span>
           </div>
-          <h3>Pantau Aktivitas Gym & Pengingat Kehadiran</h3>
+          <h3>Pantau Aktivitas Gym & Pengingat Kehadiran Pelanggan</h3>
           <p>
-            Kelola data member, jadwalkan kelas gym, dan kirimkan pengingat WhatsApp otomatis untuk
-            meningkatkan tingkat kehadiran kelas member Anda.
+            Kelola data member dan jadwal kelas latihan secara lengkap (CRUD), pantau pengingat WhatsApp harian,
+            lacak alur konfirmasi kehadiran secara end-to-end, dan catat riwayat komunikasi untuk meningkatkan retensi member.
           </p>
         </div>
 
         {onNavigate && (
           <div className="welcome-quick-actions">
             <button
+              type="button"
               className="btn-quick-action primary-quick"
               onClick={() => onNavigate('Members')}
+              title="Daftarkan pelanggan baru"
             >
               <PlusCircle size={16} />
-              <span>Tambah Member</span>
+              <span>+ Tambah Pelanggan</span>
             </button>
             <button
+              type="button"
               className="btn-quick-action secondary-quick"
               onClick={() => onNavigate('Schedules')}
+              title="Jadwalkan sesi kelas baru"
             >
               <CalendarPlus size={16} />
-              <span>Buat Jadwal Baru</span>
+              <span>+ Buat Jadwal Baru</span>
             </button>
           </div>
         )}
       </div>
 
-      {/* 4 Stats Cards */}
+      {/* 4-Step Interactive Workflow Pipeline Guidance */}
+      <div className="system-workflow-guidance-card">
+        <div className="guidance-card-header">
+          <div className="guidance-title-box">
+            <Sparkles size={16} className="text-primary" />
+            <strong>Alur Kerja Operasional Gymnasyum (4 Langkah Terstruktur):</strong>
+          </div>
+          <span className="guidance-subtitle">Alur otomatis dari pendaftaran, jadwal, pengingat WA, hingga evaluasi kehadiran</span>
+        </div>
+        <div className="workflow-steps-horizontal-track">
+          <div className="workflow-step-box" onClick={() => onNavigate && onNavigate('Members')} title="Buka Manajemen Member">
+            <div className="step-number-circle">1</div>
+            <div className="step-text-wrap">
+              <strong>1. Daftarkan Pelanggan</strong>
+              <small>Data profil & kontak WhatsApp aktif</small>
+            </div>
+          </div>
+
+          <ArrowRight size={16} className="workflow-track-arrow" />
+
+          <div className="workflow-step-box" onClick={() => onNavigate && onNavigate('Schedules')} title="Buka Jadwal Kelas">
+            <div className="step-number-circle">2</div>
+            <div className="step-text-wrap">
+              <strong>2. Jadwalkan Latihan</strong>
+              <small>Status awal otomatis "Menunggu" (Pending)</small>
+            </div>
+          </div>
+
+          <ArrowRight size={16} className="workflow-track-arrow" />
+
+          <div className="workflow-step-box" onClick={() => onNavigate && onNavigate('Reminders')} title="Buka Pengingat Harian">
+            <div className="step-number-circle">3</div>
+            <div className="step-text-wrap">
+              <strong>3. Kirim Pengingat WA</strong>
+              <small>Scheduled &rarr; Sent &rarr; Responded</small>
+            </div>
+          </div>
+
+          <ArrowRight size={16} className="workflow-track-arrow" />
+
+          <div className="workflow-step-box" onClick={() => onNavigate && onNavigate('Schedules')} title="Buka Presensi Hari-H">
+            <div className="step-number-circle">4</div>
+            <div className="step-text-wrap">
+              <strong>4. Isi Presensi di Gym</strong>
+              <small>Tandai Hadir / Tidak Hadir saat sesi selesai</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4 Interactive Navigation Stat Cards */}
       <div className="stats-cards-grid">
         {statsCards.map((card) => {
           const Icon = card.icon;
@@ -108,12 +175,18 @@ export default function OverviewPage({
               onClick={() => onNavigate && card.navTarget && onNavigate(card.navTarget)}
               role="button"
               tabIndex={0}
+              title={`${card.actionHint} (${card.value})`}
             >
               <div className="stat-card-top">
                 <div className="stat-icon-wrapper">
                   <Icon size={22} />
                 </div>
-                {onNavigate && <ArrowRight size={16} className="stat-arrow-hint" />}
+                {onNavigate && (
+                  <div className="stat-nav-hint-box">
+                    <span className="stat-nav-text">Buka</span>
+                    <ArrowRight size={14} className="stat-arrow-hint" />
+                  </div>
+                )}
               </div>
               <div className="stat-card-bottom">
                 <strong className="stat-value">{card.value}</strong>
@@ -129,20 +202,30 @@ export default function OverviewPage({
       <div className="dashboard-section-card">
         <div className="section-header-bar">
           <div>
-            <h3>Tindak Lanjut & Pengingat Hari Ini</h3>
-            <p>Daftar member dengan kelas hari ini yang membutuhkan pesan pengingat WhatsApp.</p>
+            <h3>Tindak Lanjut & Pengingat WhatsApp Hari Ini</h3>
+            <p>
+              Daftar member dengan jadwal kelas hari ini yang membutuhkan pengiriman draf pesan WhatsApp.
+            </p>
           </div>
           {onNavigate && (
             <button
+              type="button"
               className="btn-link-action"
               onClick={() => onNavigate('Reminders')}
+              title="Buka halaman antrean pengingat lengkap"
             >
-              Lihat Semua Antrean ({reminders.length}) &rarr;
+              Buka Halaman Pengingat Lengkap ({reminders.length}) &rarr;
             </button>
           )}
         </div>
 
-        <ReminderTable rows={reminders} whatsapp={whatsapp} update={update} />
+        <ReminderTable
+          rows={reminders}
+          whatsapp={whatsapp}
+          update={update}
+          onOpenMessageDrafter={onOpenMessageDrafter}
+          onOpenTimeline={onOpenTimeline}
+        />
       </div>
     </div>
   );

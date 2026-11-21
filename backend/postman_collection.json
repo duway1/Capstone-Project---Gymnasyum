@@ -1,0 +1,297 @@
+{
+  "info": {
+    "name": "Gymnasyum Smart Reminder & CRM API",
+    "_postman_id": "b26b15j003-gymnasyum-api",
+    "description": "Postman Collection pengujian RESTful API untuk Capstone Project Gymnasyum - Smart Reminder & Follow-Up",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Autentikasi",
+      "item": [
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Register User Baru",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dwi Alfiyanti\",\n  \"username\": \"dwialfiyanti\",\n  \"email\": \"dwi@gymnasyum.com\",\n  \"password\": \"dwi12345\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Kelola Data Pelanggan (Members)",
+      "item": [
+        {
+          "name": "Get All Members",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/members", "host": ["{{baseUrl}}"], "path": ["members"] }
+          }
+        },
+        {
+          "name": "Get Member Details & Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/members/1/details", "host": ["{{baseUrl}}"], "path": ["members", "1", "details"] }
+          }
+        },
+        {
+          "name": "Create Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Budi Santoso\",\n  \"phone\": \"082198765432\",\n  \"email\": \"budi.santoso@gmail.com\",\n  \"membership_status\": \"active\",\n  \"notes\": \"Fokus latihan pembentukan otot & kardio\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/members", "host": ["{{baseUrl}}"], "path": ["members"] }
+          }
+        },
+        {
+          "name": "Update Member",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Budi Santoso Updated\",\n  \"phone\": \"082198765432\",\n  \"email\": \"budi.santoso@gmail.com\",\n  \"membership_status\": \"active\",\n  \"notes\": \"Update catatan preferensi\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/members/1", "host": ["{{baseUrl}}"], "path": ["members", "1"] }
+          }
+        },
+        {
+          "name": "Delete Member",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/members/1", "host": ["{{baseUrl}}"], "path": ["members", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Kelola Jadwal Latihan (Schedules)",
+      "item": [
+        {
+          "name": "Get All Schedules",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/schedules", "host": ["{{baseUrl}}"], "path": ["schedules"] }
+          }
+        },
+        {
+          "name": "Create Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"member_id\": 1,\n  \"class_name\": \"HIIT Cardio Blast\",\n  \"session_type\": \"Group Class\",\n  \"instructor_name\": \"Coach Dimas\",\n  \"starts_at\": \"2026-11-22T19:00:00.000Z\",\n  \"attendance\": \"pending\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/schedules", "host": ["{{baseUrl}}"], "path": ["schedules"] }
+          }
+        },
+        {
+          "name": "Update Schedule Attendance",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendance\": \"present\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/schedules/1/attendance", "host": ["{{baseUrl}}"], "path": ["schedules", "1", "attendance"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Dashboard Reminder & WhatsApp Follow-Up",
+      "item": [
+        {
+          "name": "Get Reminders Today",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/reminders/today", "host": ["{{baseUrl}}"], "path": ["reminders", "today"] }
+          }
+        },
+        {
+          "name": "Get Reminder End-to-End Timeline",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/reminders/1/timeline", "host": ["{{baseUrl}}"], "path": ["reminders", "1", "timeline"] }
+          }
+        },
+        {
+          "name": "Update Reminder Status (Scheduled -> Sent -> Responded / No Response)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"sent\",\n  \"channel\": \"whatsapp\",\n  \"note\": \"Pesan pengingat dikirim via WhatsApp Web\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/reminders/1", "host": ["{{baseUrl}}"], "path": ["reminders", "1"] }
+          }
+        },
+        {
+          "name": "Get Follow-Up Message & Templates with wa.me Link",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/reminders/1/message", "host": ["{{baseUrl}}"], "path": ["reminders", "1", "message"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Logika Prioritas & Inference API",
+      "item": [
+        {
+          "name": "Inference Member Priority",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/inference/priority/1", "host": ["{{baseUrl}}"], "path": ["inference", "priority", "1"] }
+          }
+        },
+        {
+          "name": "Inference Priority Evaluation (Custom Parameters)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"absentCount\": 2,\n  \"hadNoResponse\": true,\n  \"isCurrentAbsent\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/inference/evaluate", "host": ["{{baseUrl}}"], "path": ["inference", "evaluate"] }
+          }
+        },
+        {
+          "name": "Inference Priority Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/inference/summary", "host": ["{{baseUrl}}"], "path": ["inference", "summary"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Synthetic Dataset Generator (Tool #6)",
+      "item": [
+        {
+          "name": "Generate Synthetic Dataset",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/dataset/generate", "host": ["{{baseUrl}}"], "path": ["dataset", "generate"] }
+          }
+        },
+        {
+          "name": "Reset & Regenerate Synthetic Dataset",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/dataset/reset", "host": ["{{baseUrl}}"], "path": ["dataset", "reset"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Riwayat Komunikasi (History)",
+      "item": [
+        {
+          "name": "Get Communication History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/history", "host": ["{{baseUrl}}"], "path": ["history"] }
+          }
+        },
+        {
+          "name": "Log Manual Communication",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"member_id\": 1,\n  \"channel\": \"phone\",\n  \"action\": \"Panggilan Masuk\",\n  \"note\": \"Member menelepon resepsionis untuk konfirmasi jadwal\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/history", "host": ["{{baseUrl}}"], "path": ["history"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Health Check",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      }
+    }
+  ]
+}

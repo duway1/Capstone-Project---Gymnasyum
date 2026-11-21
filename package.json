@@ -1,0 +1,11 @@
+{
+  "name": "gymnasyum-smart-reminder",
+  "version": "2.0.0",
+  "description": "Smart Reminder & Follow-Up Gymnasyum CRM (Capstone Dicoding)",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "seed": "npm --prefix backend run seed",
+    "test": "node backend/test_api.js"
+  }
+}

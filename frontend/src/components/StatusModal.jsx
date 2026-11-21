@@ -8,42 +8,52 @@ import {
   User,
   Calendar,
   Sparkles,
-  Check
+  Check,
+  Clock
 } from 'lucide-react';
 
 const STATUS_OPTIONS = [
   {
     id: 'sent',
     label: 'Terkirim',
-    title: 'Pesan Terkirim',
-    desc: 'Pengingat telah dikirimkan ke WhatsApp member.',
+    title: 'Pesan Terkirim (Sent)',
+    desc: 'Pengingat WhatsApp telah dikirimkan ke pelanggan.',
     icon: Send,
     colorClass: 'option-sent'
   },
   {
     id: 'responded',
     label: 'Merespons',
-    title: 'Member Merespons',
-    desc: 'Member telah membalas atau mengonfirmasi kehadiran.',
+    title: 'Member Merespons (Responded)',
+    desc: 'Pelanggan telah membalas atau mengonfirmasi kehadiran.',
     icon: CheckCircle2,
     colorClass: 'option-responded'
   },
   {
     id: 'no_response',
     label: 'Tanpa Balasan',
-    title: 'Tanpa Balasan',
-    desc: 'Pesan terkirim tetapi belum mendapat tanggapan.',
+    title: 'Tanpa Balasan (No Response)',
+    desc: 'Pesan terkirim tetapi belum mendapat respons balasan.',
     icon: AlertCircle,
     colorClass: 'option-no-response'
+  },
+  {
+    id: 'scheduled',
+    label: 'Terjadwal',
+    title: 'Kembali Terjadwal (Scheduled)',
+    desc: 'Kembalikan status pengingat ke antrean awal.',
+    icon: Clock,
+    colorClass: 'option-scheduled'
   }
 ];
 
 const QUICK_NOTES = [
   'Konfirmasi Hadir',
   'Minta Reschedule Jadwal',
-  'Sudah di-chat via WhatsApp',
-  'Nomor tidak aktif / Centang 1',
-  'Izin berhalangan hadir'
+  'Sudah dikirim via WhatsApp',
+  'Nomor tidak aktif / centang 1',
+  'Izin berhalangan hadir',
+  'Menunggu kabar konfirmasi'
 ];
 
 export default function StatusModal({
@@ -106,8 +116,8 @@ export default function StatusModal({
               <Sparkles size={20} />
             </div>
             <div>
-              <h3>Update Status Tindak Lanjut</h3>
-              <p>Perbarui status pengingat untuk mencatat progres komunikasi dengan member.</p>
+              <h3>Update Status Alur Pengingat</h3>
+              <p>Perbarui status alur: Scheduled &rarr; Sent &rarr; Responded / No Response.</p>
             </div>
           </div>
           <button
@@ -138,7 +148,7 @@ export default function StatusModal({
           {/* Status Selection Cards */}
           <div className="status-selection-section">
             <label className="section-label">PILIH STATUS TINDAK LANJUT</label>
-            <div className="status-options-grid">
+            <div className="status-options-grid status-options-4grid">
               {STATUS_OPTIONS.map((opt) => {
                 const Icon = opt.icon;
                 const isSelected = status === opt.id;

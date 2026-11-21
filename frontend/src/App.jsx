@@ -2,12 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import api from './api/api';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import MobileBottomNav from './components/MobileBottomNav';
 import OverviewPage from './pages/OverviewPage';
 import MembersPage from './pages/MembersPage';
 import SchedulesPage from './pages/SchedulesPage';
 import RemindersPage from './pages/RemindersPage';
 import HistoryPage from './pages/HistoryPage';
 import LoginPage from './pages/LoginPage';
+import MessageDrafterModal from './components/MessageDrafterModal';
+import ReminderTimelineModal from './components/ReminderTimelineModal';
+import ManualLogModal from './components/ManualLogModal';
+import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 export default function App() {
   const [token, setToken] = useState(() => localStorage.getItem('gymnasyum_token') || '');
@@ -28,19 +33,48 @@ export default function App() {
   const [allReminders, setAllReminders] = useState([]);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [generatingDataset, setGeneratingDataset] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  // Responsive Sidebar & Mobile Drawer state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('gymnasyum_sidebar_collapsed') === 'true';
+  });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Global modals state
+  const [drafterReminderId, setDrafterReminderId] = useState(null);
+  const [timelineReminderId, setTimelineReminderId] = useState(null);
+  const [globalLogModalOpen, setGlobalLogModalOpen] = useState(false);
 
   // Member form state
-  const [form, setForm] = useState({ name: '', phone: '', membership_status: 'active' });
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    membership_status: 'active',
+    notes: ''
+  });
   const [edit, setEdit] = useState(null);
 
-  // Schedule form state
+  // Schedule form state (supports Group Class & Private Coaching)
   const [scheduleEdit, setScheduleEdit] = useState(null);
   const [scheduleForm, setScheduleForm] = useState({
     member_id: '',
     class_name: '',
+    session_type: 'Group Class',
+    instructor_name: 'Coach Gymnasyum',
     starts_at: '',
     attendance: 'pending'
   });
+
+  const toggleSidebarCollapsed = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('gymnasyum_sidebar_collapsed', String(next));
+      return next;
+    });
+  };
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('gymnasyum_token');
@@ -81,10 +115,12 @@ export default function App() {
       setAllReminders(remindersRes.data);
       setError('');
     } catch (err) {
+      console.error('Error saat memuat data aplikasi:', err);
       if (err.response?.status === 401) {
         handleLogout();
       } else {
-        setError('Backend belum terhubung. Pastikan PostgreSQL dan Express berjalan.');
+        const detail = err.response?.data?.error || err.message;
+        setError(detail ? `Kendala koneksi backend: ${detail}` : 'Backend belum terhubung. Pastikan server API backend berjalan.');
       }
     } finally {
       setRefreshing(false);
@@ -107,6 +143,54 @@ export default function App() {
     }
   }, [token, load]);
 
+  // Synthetic Dataset Generator Handler (Tool #6 Capstone Project)
+  const handleGenerateSyntheticData = async () => {
+    setGeneratingDataset(true);
+    try {
+      const res = await api.post('/dataset/generate');
+      setToastMessage(res.data.message || 'Synthetic dataset operasional Gymnasyum berhasil dimuat!');
+      await load();
+      setTimeout(() => setToastMessage(''), 4500);
+    } catch (err) {
+      setError('Gagal membuat data simulasi: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setGeneratingDataset(false);
+    }
+  };
+
+  // Quick Action Handler from Header / Sidebar
+  const handleQuickAction = (action) => {
+    if (action === 'add-member') {
+      setEdit(null);
+      setForm({
+        name: '',
+        phone: '',
+        email: '',
+        membership_status: 'active',
+        notes: ''
+      });
+      setPage('Members');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (action === 'add-schedule') {
+      setScheduleEdit(null);
+      setScheduleForm({
+        member_id: '',
+        class_name: '',
+        session_type: 'Group Class',
+        instructor_name: 'Coach Gymnasyum',
+        starts_at: '',
+        attendance: 'pending'
+      });
+      setPage('Schedules');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (action === 'log-communication') {
+      setGlobalLogModalOpen(true);
+    } else if (action === 'view-reminders') {
+      setPage('Reminders');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   // Member handlers
   const handleSaveMember = async (e) => {
     e.preventDefault();
@@ -117,22 +201,36 @@ export default function App() {
         await api.post('/members', form);
       }
       setEdit(null);
-      setForm({ name: '', phone: '', membership_status: 'active' });
+      setForm({ name: '', phone: '', email: '', membership_status: 'active', notes: '' });
       load();
     } catch (err) {
-      setError(err.response?.data?.error || 'Gagal menyimpan member');
+      setError(err.response?.data?.error || 'Gagal menyimpan data pelanggan');
     }
   };
 
   const handleRemoveMember = async (id) => {
-    if (confirm('Hapus member ini?')) {
+    if (confirm('Hapus pelanggan ini beserta seluruh jadwal dan riwayat terkait?')) {
       try {
         await api.delete(`/members/${id}`);
         load();
       } catch (err) {
-        setError(err.response?.data?.error || 'Gagal menghapus member');
+        setError(err.response?.data?.error || 'Gagal menghapus pelanggan');
       }
     }
+  };
+
+  const handleAddScheduleForMember = (member) => {
+    setScheduleEdit(null);
+    setScheduleForm({
+      member_id: String(member.id),
+      class_name: '',
+      session_type: 'Group Class',
+      instructor_name: 'Coach Gymnasyum',
+      starts_at: '',
+      attendance: 'pending'
+    });
+    setPage('Schedules');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Reminder handlers
@@ -144,28 +242,12 @@ export default function App() {
       });
       load();
     } catch (err) {
-      setError(err.response?.data?.error || 'Gagal mengubah status');
+      setError(err.response?.data?.error || 'Gagal mengubah status pengingat');
     }
   };
 
   const handleOpenWhatsapp = async (r) => {
-    try {
-      const { data } = await api.get(`/reminders/${r.id}/message`);
-      window.open(
-        `https://wa.me/${data.phone}?text=${encodeURIComponent(data.message)}`,
-        '_blank',
-        'noopener,noreferrer'
-      );
-      if (r.status === 'scheduled') {
-        await api.patch(`/reminders/${r.id}`, {
-          status: 'opened',
-          note: 'Tautan WhatsApp dibuka; belum tentu terkirim'
-        });
-      }
-      load();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Gagal membuka WhatsApp');
-    }
+    setDrafterReminderId(r.id);
   };
 
   // Schedule handlers
@@ -175,6 +257,8 @@ export default function App() {
       const data = {
         ...scheduleForm,
         member_id: Number(scheduleForm.member_id),
+        session_type: scheduleForm.session_type || 'Group Class',
+        instructor_name: scheduleForm.instructor_name || 'Coach Gymnasyum',
         starts_at: new Date(scheduleForm.starts_at).toISOString()
       };
       if (scheduleEdit) {
@@ -186,6 +270,8 @@ export default function App() {
       setScheduleForm({
         member_id: '',
         class_name: '',
+        session_type: 'Group Class',
+        instructor_name: 'Coach Gymnasyum',
         starts_at: '',
         attendance: 'pending'
       });
@@ -204,6 +290,8 @@ export default function App() {
     setScheduleForm({
       member_id: String(s.member_id),
       class_name: s.class_name,
+      session_type: s.session_type || 'Group Class',
+      instructor_name: s.instructor_name || 'Coach Gymnasyum',
       starts_at: local,
       attendance: s.attendance
     });
@@ -225,7 +313,7 @@ export default function App() {
       await api.patch(`/schedules/${id}/attendance`, { attendance: value });
       load();
     } catch (err) {
-      setError(err.response?.data?.error || 'Gagal mengubah kehadiran');
+      setError(err.response?.data?.error || 'Gagal mengubah status presensi');
     }
   };
 
@@ -235,23 +323,43 @@ export default function App() {
   }
 
   return (
-    <div className="layout">
+    <div className={`layout ${sidebarCollapsed ? 'sidebar-is-collapsed' : ''}`}>
       <Sidebar
         page={page}
         setPage={setPage}
         user={user}
         onLogout={handleLogout}
         reminderCount={reminders.length}
+        membersCount={members.length}
+        schedulesCount={schedules.length}
+        historyCount={history.length}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebarCollapsed}
+        mobileOpen={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+        onQuickAction={handleQuickAction}
       />
 
-      <main>
+      <main className="main-content-area">
         <Header
           page={page}
+          setPage={setPage}
           user={user}
           onLogout={handleLogout}
           onRefresh={load}
           loading={refreshing}
+          isSidebarCollapsed={sidebarCollapsed}
+          onToggleSidebarCollapse={toggleSidebarCollapsed}
+          onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          onQuickAction={handleQuickAction}
         />
+
+        {toastMessage && (
+          <div className="toast-notification-banner">
+            <CheckCircle2 size={16} />
+            <span>{toastMessage}</span>
+          </div>
+        )}
 
         {error && <div className="error">{error}</div>}
 
@@ -263,6 +371,8 @@ export default function App() {
             whatsapp={handleOpenWhatsapp}
             update={handleUpdateReminderStatus}
             onNavigate={setPage}
+            onOpenMessageDrafter={(id) => setDrafterReminderId(id)}
+            onOpenTimeline={(id) => setTimelineReminderId(id)}
           />
         )}
 
@@ -275,6 +385,7 @@ export default function App() {
             setEdit={setEdit}
             onSave={handleSaveMember}
             onRemove={handleRemoveMember}
+            onAddScheduleForMember={handleAddScheduleForMember}
           />
         )}
 
@@ -290,19 +401,59 @@ export default function App() {
             onEditSchedule={handleEditSchedule}
             onDeleteSchedule={handleDeleteSchedule}
             onAttendanceChange={handleAttendanceChange}
+            onOpenMessageDrafter={(id) => setDrafterReminderId(id)}
           />
         )}
 
         {page === 'Reminders' && (
           <RemindersPage
             reminders={reminders}
+            allReminders={allReminders}
             whatsapp={handleOpenWhatsapp}
             update={handleUpdateReminderStatus}
+            onRefreshData={load}
           />
         )}
 
-        {page === 'History' && <HistoryPage history={history} />}
+        {page === 'History' && (
+          <HistoryPage
+            history={history}
+            members={members}
+            onLogAdded={load}
+          />
+        )}
       </main>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <MobileBottomNav
+        page={page}
+        setPage={setPage}
+        reminderCount={reminders.length}
+      />
+
+      {/* Global Message Drafter Modal (Priority Logic & Automated Messages) */}
+      <MessageDrafterModal
+        isOpen={Boolean(drafterReminderId)}
+        onClose={() => setDrafterReminderId(null)}
+        reminderId={drafterReminderId}
+        onMessageSent={load}
+      />
+
+      {/* Global Reminder Timeline Tracker Modal (End-to-End Status Tracking) */}
+      <ReminderTimelineModal
+        isOpen={Boolean(timelineReminderId)}
+        onClose={() => setTimelineReminderId(null)}
+        reminderId={timelineReminderId}
+        onStatusUpdated={load}
+      />
+
+      {/* Global Quick Communication Log Modal */}
+      <ManualLogModal
+        isOpen={globalLogModalOpen}
+        onClose={() => setGlobalLogModalOpen(false)}
+        members={members}
+        onLogAdded={load}
+      />
     </div>
   );
 }

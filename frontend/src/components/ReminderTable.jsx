@@ -8,11 +8,19 @@ import {
   Check,
   Phone,
   ChevronDown,
-  Sparkles
+  Sparkles,
+  Eye,
+  Info
 } from 'lucide-react';
 import StatusModal from './StatusModal';
 
-export default function ReminderTable({ rows = [], whatsapp, update }) {
+export default function ReminderTable({
+  rows = [],
+  whatsapp,
+  update,
+  onOpenTimeline,
+  onOpenMessageDrafter
+}) {
   const [activeDropdownId, setActiveDropdownId] = useState(null);
   const [modalData, setModalData] = useState({
     isOpen: false,
@@ -20,7 +28,6 @@ export default function ReminderTable({ rows = [], whatsapp, update }) {
     initialStatus: 'sent'
   });
 
-  // Menutup dropdown jika user mengklik area lain
   useEffect(() => {
     const handleDocumentClick = () => setActiveDropdownId(null);
     document.addEventListener('click', handleDocumentClick);
@@ -43,14 +50,14 @@ export default function ReminderTable({ rows = [], whatsapp, update }) {
     }
   };
 
-  const getPriorityLabel = (priority) => {
-    switch (priority) {
+  const getPriorityLabel = (r) => {
+    switch (r.priority) {
       case 'high':
-        return { text: 'Tinggi (Sering Absen)', cls: 'priority-high' };
+        return { text: 'Tinggi (High)', cls: 'priority-high', sub: r.priority_reason || 'Absen >=2x dalam 14 hari' };
       case 'medium':
-        return { text: 'Sedang', cls: 'priority-medium' };
+        return { text: 'Sedang (Medium)', cls: 'priority-medium', sub: r.priority_reason || 'Absen 1x / Tanpa balasan' };
       default:
-        return { text: 'Normal', cls: 'priority-low' };
+        return { text: 'Normal (Low)', cls: 'priority-low', sub: r.priority_reason || 'Kehadiran teratur' };
     }
   };
 
@@ -58,12 +65,11 @@ export default function ReminderTable({ rows = [], whatsapp, update }) {
     switch (status) {
       case 'scheduled':
         return { text: 'Terjadwal', cls: 'status-scheduled', icon: Clock };
-      case 'opened':
-        return { text: 'Link Dibuka', cls: 'status-opened', icon: CheckCircle2 };
       case 'sent':
-        return { text: 'Sudah Dikirim', cls: 'status-sent', icon: Send };
+      case 'opened':
+        return { text: 'Pesan Terkirim', cls: 'status-sent', icon: Send };
       case 'responded':
-        return { text: 'Merespons', cls: 'status-responded', icon: Check };
+        return { text: 'Merespons Hadir', cls: 'status-responded', icon: Check };
       case 'no_response':
         return { text: 'Tanpa Balasan', cls: 'status-no-response', icon: AlertCircle };
       default:
@@ -87,7 +93,7 @@ export default function ReminderTable({ rows = [], whatsapp, update }) {
           <CheckCircle2 size={38} />
         </div>
         <h4>Semua Beres!</h4>
-        <p>Tidak ada pengingat kelas yang perlu dikirim hari ini.</p>
+        <p>Tidak ada pengingat kelas yang perlu dikirim pada tanggal ini.</p>
       </div>
     );
   }
@@ -98,16 +104,16 @@ export default function ReminderTable({ rows = [], whatsapp, update }) {
         <table className="modern-data-table">
           <thead>
             <tr>
-              <th>Member</th>
-              <th>Kelas Gym</th>
-              <th>Prioritas Follow-up</th>
-              <th>Status Pengingat</th>
+              <th>Member Pelanggan</th>
+              <th>Kelas & Tipe Sesi</th>
+              <th>Klasifikasi Prioritas</th>
+              <th>Status Alur Pengingat</th>
               <th className="text-right">Aksi Tindak Lanjut</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => {
-              const prio = getPriorityLabel(r.priority);
+              const prio = getPriorityLabel(r);
               const stat = getStatusBadge(r.status);
               const StatusIcon = stat.icon;
 
@@ -123,46 +129,82 @@ export default function ReminderTable({ rows = [], whatsapp, update }) {
                   </td>
                   <td>
                     <div className="class-cell">
-                      <strong className="class-title">{r.class_name}</strong>
+                      <div className="class-title-row">
+                        <strong className="class-title">{r.class_name}</strong>
+                        {r.session_type && (
+                          <span className="badge-pill badge-session-type-sm">
+                            {r.session_type}
+                          </span>
+                        )}
+                      </div>
                       {r.starts_at && (
                         <span className="class-time">
                           <Clock size={12} /> {formatTime(r.starts_at)}
+                          {r.instructor_name ? ` • ${r.instructor_name}` : ''}
                         </span>
                       )}
                     </div>
                   </td>
                   <td>
-                    <span className={`badge-pill ${prio.cls}`}>
-                      <span className="badge-dot"></span>
-                      {prio.text}
-                    </span>
+                    <div className="priority-table-cell">
+                      <span className={`badge-pill ${prio.cls}`}>
+                        <span className="badge-dot"></span>
+                        {prio.text}
+                      </span>
+                      <small className="priority-cell-reason" title={prio.sub}>
+                        <Info size={11} /> {prio.sub}
+                      </small>
+                    </div>
                   </td>
                   <td>
                     <span
                       className={`badge-pill ${stat.cls} clickable-status-pill`}
                       onClick={() => openStatusModal(r, r.status === 'scheduled' ? 'sent' : r.status)}
-                      title="Klik untuk memperbarui status pengingat"
+                      title="Klik untuk memperbarui status alur pengingat"
                     >
                       <StatusIcon size={13} />
                       {stat.text}
                     </span>
+                    {r.note && (
+                      <div className="table-note-snippet" title={r.note}>
+                        &ldquo;{r.note}&rdquo;
+                      </div>
+                    )}
                   </td>
                   <td className="text-right">
                     <div
                       className="actions-cluster-clean"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {/* WhatsApp Button (Clean & Prominent) */}
+                      {/* WhatsApp / Follow-Up Message Button */}
                       <button
                         className="btn-action-wa"
-                        onClick={() => whatsapp(r)}
-                        title="Buka draf pesan otomatis di WhatsApp Web"
+                        onClick={() => {
+                          if (onOpenMessageDrafter) {
+                            onOpenMessageDrafter(r.id);
+                          } else if (whatsapp) {
+                            whatsapp(r);
+                          }
+                        }}
+                        title="Buka template pesan follow up otomatis & kirim WA"
                       >
                         <MessageCircle size={15} />
-                        <span>WhatsApp</span>
+                        <span>Kirim WA</span>
                       </button>
 
-                      {/* Dropdown Action Menu (Replaces crowded 3 buttons) */}
+                      {/* Lacak Alur End-to-End Button */}
+                      {onOpenTimeline && (
+                        <button
+                          className="btn-table-action btn-action-track"
+                          onClick={() => onOpenTimeline(r.id)}
+                          title="Lacak jejak alur status end-to-end"
+                        >
+                          <Eye size={14} />
+                          <span>Lacak</span>
+                        </button>
+                      )}
+
+                      {/* Dropdown Action Menu */}
                       <div className="action-dropdown-container">
                         <button
                           className={`btn-action-dropdown-trigger ${
@@ -177,7 +219,7 @@ export default function ReminderTable({ rows = [], whatsapp, update }) {
                           title="Ubah status pengingat"
                         >
                           <Sparkles size={13} className="trigger-icon" />
-                          <span>Update Status</span>
+                          <span>Status</span>
                           <ChevronDown
                             size={14}
                             className={`chevron-icon ${

@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Production build
+dist/
+frontend/dist/
+
+# Environment variables
+.env
+backend/.env
+!.env.example
+!backend/.env.example
+
+# Local databases and runtime logs
+*.sqlite
+*.sqlite-journal
+backend/gymnasyum.sqlite*
+*.log
+npm-debug.log*
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
