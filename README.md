@@ -47,11 +47,13 @@ npm install
 
 
 npm run dev
-```
 Buka browser pada: `http://localhost:5173`  
 Gunakan akun login bawaan: `admin` / `admin123`.
 
 ```
+
+```
+
 
 
 ## 5 Fitur Utama Sesuai Project Plan
