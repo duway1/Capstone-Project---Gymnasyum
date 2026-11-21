@@ -1,15 +1,43 @@
 # Gymnasyum – Smart Reminder & Follow-Up System
-**Dicoding Bootcamp - Capstone Project**  
-- **ID Tim:** B26B15J003  
-- **Judul Proyek:** Smart Reminder & Follow-Up Gymnasyum  
-- **Tema:** Gymnasyum – Smart Reminder & Follow UP  
-- **Pengembang:** Dwi Alfiyanti (Solo Developer - Full-Stack Web Developer)  
-
----
 
 ## Ringkasan Eksekutif & Cakupan Proyek
 Gymnasyum merupakan sistem **Dashboard CRM Admin** interaktif untuk bisnis gym dan private coaching. Sistem ini mengotomatisasi manajemen jadwal latihan, pelacakan alur pengingat kehadiran secara *end-to-end*, integrasi **Inference API** untuk klasifikasi prioritas pelanggan (*Low, Medium, High Priority*), serta penyediaan draf pesan follow-up semi-otomatis melalui tombol tautan langsung WhatsApp (`wa.me`).
 
+---
+
+## Panduan Instalasi & Menjalankan Proyek
+
+### 1. Prasyarat
+- Node.js versi 18 ke atas (Direkomendasikan Node.js 20+)
+- Browser modern (Google Chrome, Firefox, Edge)
+
+### 2. Setup & Jalankan Backend API
+```bash
+# Masuk ke direktori backend
+cd backend
+
+# Install dependencies (jika belum)
+npm install
+
+# (Opsional) Generate dataset simulasi awal
+npm run seed
+
+# Jalankan backend API
+npm run dev
+```
+Backend berjalan pada: `http://localhost:3001`  
+*(Penyimpanan database otomatis menggunakan SQLite lokal `gymnasyum.sqlite` atau PostgreSQL jika aktif).*
+
+### 3. Jalankan Frontend Web (React + Vite)
+Buka terminal baru:
+```bash
+# Masuk ke direktori frontend
+cd frontend
+
+# Install dependencies (jika belum)
+npm install
+
+# Jalankan server frontend Vite
 ---
 
 ## Akun Login Bawaan (Default Admin)
@@ -76,40 +104,6 @@ $$\text{Scheduled} \longrightarrow \text{Sent} \longrightarrow \text{Responded /
 
 ---
 
-
-## Panduan Instalasi & Menjalankan Proyek
-
-### 1. Prasyarat
-- Node.js versi 18 ke atas (Direkomendasikan Node.js 20+)
-- Browser modern (Google Chrome, Firefox, Edge)
-
-### 2. Setup & Jalankan Backend API
-```bash
-# Masuk ke direktori backend
-cd backend
-
-# Install dependencies (jika belum)
-npm install
-
-# (Opsional) Generate dataset simulasi awal
-npm run seed
-
-# Jalankan backend API
-npm run dev
-```
-Backend berjalan pada: `http://localhost:3001`  
-*(Penyimpanan database otomatis menggunakan SQLite lokal `gymnasyum.sqlite` atau PostgreSQL jika aktif).*
-
-### 3. Jalankan Frontend Web (React + Vite)
-Buka terminal baru:
-```bash
-# Masuk ke direktori frontend
-cd frontend
-
-# Install dependencies (jika belum)
-npm install
-
-# Jalankan server frontend Vite
 npm run dev
 ```
 Buka browser pada: `http://localhost:5173`  
