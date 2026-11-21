@@ -45,6 +45,12 @@ npm install
 - **Password:** `admin123`
 *(Tersedia opsi registrasi akun staf/admin baru pada halaman login)*
 
+
+npm run dev
+```
+Buka browser pada: `http://localhost:5173`  
+Gunakan akun login bawaan: `admin` / `admin123`.
+
 ```
 
 
@@ -102,13 +108,6 @@ $$\text{Scheduled} \longrightarrow \text{Sent} \longrightarrow \text{Responded /
     6. Apresiasi Pasca-Latihan (Apresiasi kehadiran)
   - Otomatis mengisi variabel dinamis `{nama}`, `{kelas}`, `{tipe_sesi}`, `{instruktur}`, dan `{hari_tanggal_jam}` WIB.
   - Dilengkapi fitur editor pratinjau langsung, salin teks pesan, dan 1-klik buka WhatsApp Web (`wa.me`).
-
----
-
-npm run dev
-```
-Buka browser pada: `http://localhost:5173`  
-Gunakan akun login bawaan: `admin` / `admin123`.
 
 ---
 
