@@ -21,12 +21,24 @@ import {
 } from './api/demoData';
 
 export default function App() {
-  const [token, setToken] = useState(() => localStorage.getItem('gymnasyum_token') || '');
+  const [token, setToken] = useState(() => {
+    const t = localStorage.getItem('gymnasyum_token');
+    if (!t || t === 'undefined' || t === 'null') {
+      localStorage.removeItem('gymnasyum_token');
+      return '';
+    }
+    return t;
+  });
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('gymnasyum_user');
-      return saved ? JSON.parse(saved) : null;
+      if (!saved || saved === 'undefined' || saved === 'null') {
+        localStorage.removeItem('gymnasyum_user');
+        return null;
+      }
+      return JSON.parse(saved);
     } catch {
+      localStorage.removeItem('gymnasyum_user');
       return null;
     }
   });
