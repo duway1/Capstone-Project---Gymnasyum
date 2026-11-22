@@ -19,6 +19,10 @@ backend/gymnasyum.sqlite*
 *.log
 npm-debug.log*
 
+# Office & temp presentation files
+*.pptx
+~$*
+
 # Editor & OS files
 .DS_Store
 Thumbs.db

@@ -42,9 +42,30 @@ export default function LoginPage({ onLoginSuccess }) {
 
       localStorage.setItem('gymnasyum_token', data.token);
       localStorage.setItem('gymnasyum_user', JSON.stringify(data.user));
+      localStorage.removeItem('gymnasyum_demo_mode');
       onLoginSuccess(data.user, data.token);
     } catch (err) {
-      setError(err.response?.data?.error || 'Username atau kata sandi tidak cocok. Silakan coba lagi.');
+      // Jika backend belum aktif di server cloud (Vercel) dan kredensial admin dimasukkan:
+      const isBackendOffline = err.isHtmlFallback || err.message?.includes('Network Error') || !err.response;
+      if (isBackendOffline && (username.trim() === 'admin' || username.trim() === 'admin@gymnasyum.com') && password === 'admin123') {
+        const demoUser = {
+          id: 1,
+          name: 'Dwi Alfiyanti (Admin)',
+          username: 'admin',
+          email: 'admin@gymnasyum.com',
+          role: 'admin'
+        };
+        const demoToken = 'gymnasyum_demo_token_cloud_2026';
+        if (rememberMe) {
+          localStorage.setItem('gymnasyum_saved_username', username.trim());
+        }
+        localStorage.setItem('gymnasyum_token', demoToken);
+        localStorage.setItem('gymnasyum_user', JSON.stringify(demoUser));
+        localStorage.setItem('gymnasyum_demo_mode', 'true');
+        onLoginSuccess(demoUser, demoToken);
+        return;
+      }
+      setError(err.response?.data?.error || (err.isHtmlFallback ? 'Backend API belum terhubung. Silakan gunakan akun admin / admin123 untuk mode demo.' : 'Username atau kata sandi tidak cocok. Silakan coba lagi.'));
     } finally {
       setLoading(false);
     }

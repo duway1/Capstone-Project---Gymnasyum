@@ -13,6 +13,12 @@ import MessageDrafterModal from './components/MessageDrafterModal';
 import ReminderTimelineModal from './components/ReminderTimelineModal';
 import ManualLogModal from './components/ManualLogModal';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
+import {
+  INITIAL_DEMO_MEMBERS,
+  INITIAL_DEMO_SCHEDULES,
+  INITIAL_DEMO_REMINDERS,
+  INITIAL_DEMO_HISTORY
+} from './api/demoData';
 
 export default function App() {
   const [token, setToken] = useState(() => localStorage.getItem('gymnasyum_token') || '');
@@ -98,6 +104,31 @@ export default function App() {
   const load = useCallback(async () => {
     if (!token) return;
     setRefreshing(true);
+
+    const isDemo = localStorage.getItem('gymnasyum_demo_mode') === 'true';
+    if (isDemo) {
+      try {
+        const sm = JSON.parse(localStorage.getItem('gymnasyum_demo_members')) || INITIAL_DEMO_MEMBERS;
+        const ss = JSON.parse(localStorage.getItem('gymnasyum_demo_schedules')) || INITIAL_DEMO_SCHEDULES;
+        const sr = JSON.parse(localStorage.getItem('gymnasyum_demo_reminders')) || INITIAL_DEMO_REMINDERS;
+        const sh = JSON.parse(localStorage.getItem('gymnasyum_demo_history')) || INITIAL_DEMO_HISTORY;
+        setMembers(sm);
+        setSchedules(ss);
+        setReminders(sr);
+        setHistory(sh);
+        setAllReminders(sr);
+        setError('');
+      } catch {
+        setMembers(INITIAL_DEMO_MEMBERS);
+        setSchedules(INITIAL_DEMO_SCHEDULES);
+        setReminders(INITIAL_DEMO_REMINDERS);
+        setHistory(INITIAL_DEMO_HISTORY);
+        setAllReminders(INITIAL_DEMO_REMINDERS);
+      }
+      setRefreshing(false);
+      return;
+    }
+
     try {
       const [membersRes, schedulesRes, remindersTodayRes, historyRes, remindersRes] =
         await Promise.all([
@@ -108,24 +139,29 @@ export default function App() {
           api.get('/reminders')
         ]);
 
-      setMembers(membersRes.data);
-      setSchedules(schedulesRes.data);
-      setReminders(remindersTodayRes.data);
-      setHistory(historyRes.data);
-      setAllReminders(remindersRes.data);
-      setError('');
-    } catch (err) {
-      console.error('Error saat memuat data aplikasi:', err);
-      if (err.response?.status === 401) {
-        handleLogout();
+      if (Array.isArray(membersRes.data) && Array.isArray(schedulesRes.data)) {
+        setMembers(membersRes.data);
+        setSchedules(schedulesRes.data);
+        setReminders(Array.isArray(remindersTodayRes.data) ? remindersTodayRes.data : []);
+        setHistory(Array.isArray(historyRes.data) ? historyRes.data : []);
+        setAllReminders(Array.isArray(remindersRes.data) ? remindersRes.data : []);
+        setError('');
       } else {
-        const detail = err.response?.data?.error || err.message;
-        setError(detail ? `Kendala koneksi backend: ${detail}` : 'Backend belum terhubung. Pastikan server API backend berjalan.');
+        throw new Error('Respon data backend bukan array');
       }
+    } catch (err) {
+      console.warn('Backend API tidak merespons, beralih ke dataset demo lokal:', err.message);
+      // Fallback ke dataset demo agar UI tidak pernah blank screen
+      setMembers(INITIAL_DEMO_MEMBERS);
+      setSchedules(INITIAL_DEMO_SCHEDULES);
+      setReminders(INITIAL_DEMO_REMINDERS);
+      setHistory(INITIAL_DEMO_HISTORY);
+      setAllReminders(INITIAL_DEMO_REMINDERS);
+      setError('');
     } finally {
       setRefreshing(false);
     }
-  }, [token, handleLogout]);
+  }, [token]);
 
   useEffect(() => {
     const onUnauthorized = () => {
@@ -194,6 +230,31 @@ export default function App() {
   // Member handlers
   const handleSaveMember = async (e) => {
     e.preventDefault();
+    const isDemo = localStorage.getItem('gymnasyum_demo_mode') === 'true';
+    if (isDemo) {
+      const cur = JSON.parse(localStorage.getItem('gymnasyum_demo_members')) || INITIAL_DEMO_MEMBERS;
+      let updated;
+      if (edit) {
+        updated = cur.map((m) => (m.id === edit ? { ...m, ...form } : m));
+      } else {
+        const newM = {
+          id: Date.now(),
+          ...form,
+          attendance_rate: 100,
+          total_sessions: 0,
+          present_count: 0,
+          absent_count: 0,
+          rescheduled_count: 0
+        };
+        updated = [newM, ...cur];
+      }
+      localStorage.setItem('gymnasyum_demo_members', JSON.stringify(updated));
+      setEdit(null);
+      setForm({ name: '', phone: '', email: '', membership_status: 'active', notes: '' });
+      load();
+      return;
+    }
+
     try {
       if (edit) {
         await api.put(`/members/${edit}`, form);
@@ -210,6 +271,14 @@ export default function App() {
 
   const handleRemoveMember = async (id) => {
     if (confirm('Hapus pelanggan ini beserta seluruh jadwal dan riwayat terkait?')) {
+      const isDemo = localStorage.getItem('gymnasyum_demo_mode') === 'true';
+      if (isDemo) {
+        const cur = JSON.parse(localStorage.getItem('gymnasyum_demo_members')) || INITIAL_DEMO_MEMBERS;
+        const updated = cur.filter((m) => m.id !== id);
+        localStorage.setItem('gymnasyum_demo_members', JSON.stringify(updated));
+        load();
+        return;
+      }
       try {
         await api.delete(`/members/${id}`);
         load();
@@ -235,6 +304,14 @@ export default function App() {
 
   // Reminder handlers
   const handleUpdateReminderStatus = async (id, status, note = '') => {
+    const isDemo = localStorage.getItem('gymnasyum_demo_mode') === 'true';
+    if (isDemo) {
+      const cur = JSON.parse(localStorage.getItem('gymnasyum_demo_reminders')) || INITIAL_DEMO_REMINDERS;
+      const updated = cur.map((r) => (r.id === id ? { ...r, status, note: note || r.note } : r));
+      localStorage.setItem('gymnasyum_demo_reminders', JSON.stringify(updated));
+      load();
+      return;
+    }
     try {
       await api.patch(`/reminders/${id}`, {
         status,
@@ -253,6 +330,56 @@ export default function App() {
   // Schedule handlers
   const handleSaveSchedule = async (e) => {
     e.preventDefault();
+    const isDemo = localStorage.getItem('gymnasyum_demo_mode') === 'true';
+    const memberObj = members.find((m) => m.id === Number(scheduleForm.member_id));
+
+    if (isDemo) {
+      const cur = JSON.parse(localStorage.getItem('gymnasyum_demo_schedules')) || INITIAL_DEMO_SCHEDULES;
+      let updated;
+      if (scheduleEdit) {
+        updated = cur.map((s) => (s.id === scheduleEdit ? { ...s, ...scheduleForm, member_name: memberObj?.name || 'Member' } : s));
+      } else {
+        const newS = {
+          id: Date.now(),
+          ...scheduleForm,
+          member_id: Number(scheduleForm.member_id),
+          member_name: memberObj?.name || 'Member',
+          member_phone: memberObj?.phone || '081234567890'
+        };
+        updated = [newS, ...cur];
+
+        // Buat reminder otomatis
+        const curRem = JSON.parse(localStorage.getItem('gymnasyum_demo_reminders')) || INITIAL_DEMO_REMINDERS;
+        const newRem = {
+          id: Date.now() + 1,
+          schedule_id: newS.id,
+          member_id: newS.member_id,
+          member_name: newS.member_name,
+          member_phone: newS.member_phone,
+          class_name: newS.class_name,
+          session_type: newS.session_type,
+          instructor_name: newS.instructor_name,
+          starts_at: newS.starts_at,
+          due_date: new Date().toISOString().split('T')[0],
+          status: 'scheduled',
+          priority: 'low'
+        };
+        localStorage.setItem('gymnasyum_demo_reminders', JSON.stringify([newRem, ...curRem]));
+      }
+      localStorage.setItem('gymnasyum_demo_schedules', JSON.stringify(updated));
+      setScheduleEdit(null);
+      setScheduleForm({
+        member_id: '',
+        class_name: '',
+        session_type: 'Group Class',
+        instructor_name: 'Coach Gymnasyum',
+        starts_at: '',
+        attendance: 'pending'
+      });
+      load();
+      return;
+    }
+
     try {
       const data = {
         ...scheduleForm,
@@ -299,6 +426,14 @@ export default function App() {
 
   const handleDeleteSchedule = async (id) => {
     if (confirm('Hapus jadwal dan reminder terkait?')) {
+      const isDemo = localStorage.getItem('gymnasyum_demo_mode') === 'true';
+      if (isDemo) {
+        const cur = JSON.parse(localStorage.getItem('gymnasyum_demo_schedules')) || INITIAL_DEMO_SCHEDULES;
+        const updated = cur.filter((s) => s.id !== id);
+        localStorage.setItem('gymnasyum_demo_schedules', JSON.stringify(updated));
+        load();
+        return;
+      }
       try {
         await api.delete(`/schedules/${id}`);
         load();
@@ -309,6 +444,14 @@ export default function App() {
   };
 
   const handleAttendanceChange = async (id, value) => {
+    const isDemo = localStorage.getItem('gymnasyum_demo_mode') === 'true';
+    if (isDemo) {
+      const cur = JSON.parse(localStorage.getItem('gymnasyum_demo_schedules')) || INITIAL_DEMO_SCHEDULES;
+      const updated = cur.map((s) => (s.id === id ? { ...s, attendance: value } : s));
+      localStorage.setItem('gymnasyum_demo_schedules', JSON.stringify(updated));
+      load();
+      return;
+    }
     try {
       await api.patch(`/schedules/${id}/attendance`, { attendance: value });
       load();

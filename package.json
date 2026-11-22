@@ -3,6 +3,8 @@
   "version": "2.0.0",
   "description": "Smart Reminder & Follow-Up Gymnasyum CRM (Capstone Dicoding)",
   "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build && npm --prefix backend install",
+    "start": "node backend/src/index.js",
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
     "seed": "npm --prefix backend run seed",

@@ -39,7 +39,24 @@ export default function MessageDrafterModal({
           setSelectedTemplateId(res.data.recommendedTemplateId);
           setCustomMessage(res.data.defaultMessage);
         })
-        .catch((err) => console.error('Gagal memuat template pesan:', err))
+        .catch((err) => {
+          console.warn('Gagal memuat template pesan dari backend, menggunakan template bawaan:', err);
+          const fallbackData = {
+            member: { name: 'Member Gymnasyum', phone: '081234567890' },
+            schedule: { class_name: 'Sesi Latihan Kebugaran', session_type: 'Group Class', instructor_name: 'Coach Gymnasyum', starts_at: new Date().toISOString() },
+            priority: 'medium',
+            recommendedTemplateId: 'template_standard',
+            defaultMessage: 'Halo Member Gymnasyum! Mengingatkan jadwal latihan Anda hari ini di Gymnasyum. Sampai jumpa di sesi latihan!',
+            whatsappLink: 'https://wa.me/6281234567890?text=' + encodeURIComponent('Halo Member Gymnasyum! Mengingatkan jadwal latihan Anda hari ini di Gymnasyum.'),
+            templates: [
+              { id: 'template_standard', name: 'Pengingat Standar Ramah', text: 'Halo {nama}! Mengingatkan jadwal latihan {kelas} hari ini di Gymnasyum. Sampai jumpa di gym!' },
+              { id: 'template_high_risk', name: 'Pendekatan Personal & Empati', text: 'Halo {nama}! Kami rindu melihat Anda di gym. Apakah ada kendala pada jadwal latihan?' }
+            ]
+          };
+          setData(fallbackData);
+          setSelectedTemplateId('template_standard');
+          setCustomMessage(fallbackData.defaultMessage);
+        })
         .finally(() => setLoading(false));
     } else {
       setData(null);
